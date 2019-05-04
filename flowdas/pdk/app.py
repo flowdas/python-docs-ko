@@ -1,8 +1,10 @@
+import io
 import os
 import subprocess
 
 import flowdas.app
 import flowdas.meta
+from babel.messages.pofile import read_po, write_po
 
 flowdas.app.define('docker', flowdas.meta.Boolean(default=False))
 flowdas.app.define('cpython_branch', flowdas.meta.String(default='3.7'))
@@ -85,3 +87,18 @@ class App(flowdas.app.App):
             """push docker image (dev only)"""
             app = App()
             return shell(f'{app.config.docker_cmd} push {app.image}', chdir=app.home)
+
+        def format(self, pofile):
+            """format po file"""
+            with open(pofile) as f:
+                idata = f.read()
+            f = io.StringIO(idata)
+            catalog = read_po(f, abort_invalid=True)
+            f = io.BytesIO()
+            write_po(f, catalog)
+            odata = f.getvalue()
+            if idata.encode() != odata:
+                with open(pofile, 'wb') as f:
+                    f.write(odata)
+            else:
+                print('already formatted')

@@ -6,6 +6,7 @@ setup_requires = [
 
 install_requires = [
     'flowdas',
+    'Babel',
 ]
 
 tests_require = [
@@ -36,7 +37,7 @@ setup(
         "Code": "https://github.com/flowdas/python-docs-ko",
         "Issue tracker": "https://github.com/flowdas/python-docs-ko/issues",
     },
-    description='The toolkit for Korean translation of the Python documentation.',
+    description='A toolkit for Korean translation of the Python documentation.',
     long_description=open('README.rst').read(),
     author='Flowdas Inc.',
     author_email='prospero@flowdas.com',
