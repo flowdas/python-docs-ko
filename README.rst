@@ -1,10 +1,10 @@
 python-docs-ko
 ==============
 
-The toolkit for Korean translation of the Python documentation.
+A toolkit for Korean translation of the Python documentation.
 
-Prerequisite
-------------
+Prerequisites
+-------------
 
 - Git
 - Docker
