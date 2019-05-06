@@ -20,7 +20,7 @@ Install
     pip install python-docs-ko
     pdk init <your-python-docs-ko-fork>
 
-    # translate *.po files in python-docs-ko/
+    # translate *.po files in python-docs-ko/msg/
 
 Build
 -----
@@ -28,4 +28,4 @@ Build
 ::
 
     pdk build
-    open html/index.html
+    open python-docs-ko/pub/index.html

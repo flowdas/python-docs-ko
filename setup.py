@@ -7,6 +7,7 @@ setup_requires = [
 install_requires = [
     'flowdas',
     'Babel',
+    'pyyaml',
 ]
 
 tests_require = [

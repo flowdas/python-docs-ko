@@ -6,10 +6,13 @@ WORKDIR /python-docs-ko
 # create venv
 RUN python -m venv .
 
+# create project directory
+RUN mkdir python-docs-ko
+
 # git clone cpython
-RUN git clone -b 3.7 --single-branch https://github.com/flowdas/cpython cpython
-RUN rm -rf cpython/.git
-RUN mkdir -p cpython/locale/ko/LC_MESSAGES
+RUN git clone -b 3.7 --single-branch https://github.com/flowdas/cpython python-docs-ko/src
+RUN rm -rf python-docs-ko/src/.git
+RUN mkdir -p python-docs-ko/src/locale/ko/LC_MESSAGES
 
 # install python-doc-ko
 COPY setup.py README.rst VERSION docker.config.json ./
