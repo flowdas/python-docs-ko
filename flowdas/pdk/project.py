@@ -118,7 +118,7 @@ class Project(meta.Entity):
 
 class DefaultProject(Project):
     kind = 'python-docs-ko'
-    msg_repo = meta.String(required=True)
+    msg_repo = meta.String()
 
     def get_doc_dir(self):
         return 'Doc'
@@ -150,15 +150,15 @@ class DefaultProject(Project):
         else:
             return "make VENVDIR=../../.. SPHINXOPTS='-D locale_dirs=../locale -D language=ko -D gettext_compact=0 -A daily=1 -A switchers=1' html"
 
-
     def get_build_dir(self):
         return 'Doc'
 
     def setup(self):
         app = App()
-        msg_dir = app.home / self.name / 'msg'
-        if not (msg_dir / '.git').exists():
-            git_clone(self.msg_repo, msg_dir, '3.7')
+        if self.msg_repo:
+            msg_dir = app.home / self.name / 'msg'
+            if not (msg_dir / '.git').exists():
+                git_clone(self.msg_repo, msg_dir, '3.7')
         try:
             shell(f'{app.config.docker_cmd} image inspect {app.image}', capture=True)
         except:
