@@ -28,4 +28,4 @@ Build
 ::
 
     pdk build
-    open python-docs-ko/pub/index.html
+    open python-docs-ko/bld/html/index.html

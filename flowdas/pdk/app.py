@@ -43,9 +43,9 @@ class App(flowdas.app.App):
                     f.write(DEFAULT_PROJECT_DATA.format(repo))
             app.open_project(project).setup()
 
-        def build(self, *, project='python-docs-ko'):
+        def build(self, *, rebuild=False, project='python-docs-ko'):
             """build html"""
-            App().open_project(project).build()
+            App().open_project(project).build(rebuild=rebuild)
 
         def dockerbuild(self):
             """build docker image (dev only)"""
