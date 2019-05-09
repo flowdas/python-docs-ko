@@ -6,6 +6,7 @@ import subprocess
 from flowdas.app import App
 
 from flowdas import meta
+from .aofile import AOFile
 
 
 def shell(cmd, capture=False, chdir=None):
@@ -40,6 +41,7 @@ def git_clone(repo, dir, branch=None):
 class Project(meta.Entity):
     kind = meta.Kind()
     name = meta.String(required=True)
+    cname = meta.String()
 
     @property
     def home(self):
@@ -55,6 +57,9 @@ class Project(meta.Entity):
         return None
 
     def get_bld_dir(self):
+        return None
+
+    def get_htm_dir(self):
         return None
 
     def get_build_cmd(self, *, rebuild=False):
@@ -83,24 +88,69 @@ class Project(meta.Entity):
         return shell(f'{app.config.docker_cmd} run --rm -i {volumes} {app.image} build {options}',
                      chdir=home)
 
+    def _prune_dir(self, root):
+        if root.exists():
+            with os.scandir(root) as it:
+                for entry in it:
+                    if not entry.name.startswith('.'):
+                        path = os.path.join(root, entry.name)
+                        if entry.is_file():
+                            os.remove(path)
+                        else:
+                            shutil.rmtree(path)
+
     def build(self, *, rebuild=False):
         app = App()
         if app.config.docker:
             tmp_dir = self.home / 'tmp'
             if tmp_dir.exists():
                 shutil.rmtree(tmp_dir)
+            pub_dir = self.home / 'pub'
+            publish = pub_dir.exists() and rebuild
+            if publish:
+                self._prune_dir(self.home / 'bld')
             self.copy_doc()
             self.link_msg()
             self.link_bld()
             shell(self.get_build_cmd(rebuild=rebuild), chdir=tmp_dir / self.get_build_dir())
+            if publish:
+                self._prune_dir(pub_dir)
+                self.copy_pub()
         else:
             self.docker_build(rebuild=rebuild)
+
+    def _annotate(self, src, dst, ann):
+        dst.mkdir(parents=True, exist_ok=True)
+        for src_child in src.iterdir():
+            dst_child = dst / src_child.name
+            ann_child = ann / src_child.name
+            if src_child.is_dir():
+                if src_child.name not in {'__pycache__'}:
+                    self._annotate(src_child, dst_child, ann_child)
+            elif ann_child.exists():
+                original = src_child.read_text()
+                aofile = AOFile(ann_child)
+                annotated = aofile.render(original)
+                dst_child.write_text(annotated)
+                mtime0 = src_child.stat().st_mtime
+                mtime1 = ann_child.stat().st_mtime
+                if mtime1 > mtime0:
+                    times = (ann_child.stat().st_atime, mtime1)
+                else:
+                    times = (src_child.stat().st_atime, mtime0)
+                os.utime(dst_child, times)
+            else:
+                shutil.copy2(src_child, dst_child)
 
     def copy_doc(self):
         src_dir = self.home / 'src' / self.get_doc_dir()
         dst_dir = self.home / 'tmp' / self.get_doc_dir()
-        if not dst_dir.exists() or not src_dir.samefile(dst_dir):
-            shutil.copytree(src_dir, dst_dir, ignore=shutil.ignore_patterns('.git'))
+        mod_dir = self.home / 'mod'
+        if mod_dir.exists():
+            self._annotate(src_dir, dst_dir, mod_dir)
+        else:
+            if not dst_dir.exists() or not src_dir.samefile(dst_dir):
+                shutil.copytree(src_dir, dst_dir, ignore=shutil.ignore_patterns('.git'))
         for link in (self.get_src_links() or []):
             self._create_symlink(self.home / 'tmp' / link, self.home / 'src' / link)
 
@@ -114,6 +164,31 @@ class Project(meta.Entity):
 
     def link_bld(self):
         self._link_dir('bld', self.get_bld_dir())
+
+    def copy_pub(self):
+        htm_dir = self.get_htm_dir()
+        if htm_dir:
+            src = self.home / 'bld' / htm_dir
+            if src.exists():
+                ignore = shutil.ignore_patterns('.*')
+                dst = self.home / 'pub'
+                for child in src.iterdir():
+                    if child.name.startswith('.'):
+                        continue
+                    if child.is_dir():
+                        shutil.copytree(child, dst / child.name, ignore=ignore)
+                    else:
+                        shutil.copy2(child, dst / child.name)
+
+                # create empty files
+                for name in ['.nojekyll']:
+                    path = dst / name
+                    if not path.exists():
+                        path.write_text('')
+
+                # create CNAME
+                if self.cname:
+                    (dst / 'CNAME').write_text(self.cname)
 
 
 class DefaultProject(Project):
@@ -143,6 +218,9 @@ class DefaultProject(Project):
 
     def get_bld_dir(self):
         return 'Doc/build'
+
+    def get_htm_dir(self):
+        return 'html'
 
     def get_build_cmd(self, *, rebuild=False):
         if rebuild:
