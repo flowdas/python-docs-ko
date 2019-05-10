@@ -1,4 +1,5 @@
 import os.path
+import os.path
 import pathlib
 import shutil
 import subprocess
@@ -7,6 +8,7 @@ from flowdas.app import App
 
 from flowdas import meta
 from .aofile import AOFile
+from .index import Index
 
 
 def shell(cmd, capture=False, chdir=None):
@@ -194,6 +196,7 @@ class Project(meta.Entity):
 class DefaultProject(Project):
     kind = 'python-docs-ko'
     msg_repo = meta.String()
+    ignores = meta.String[:](required=True)
 
     def get_doc_dir(self):
         return 'Doc'
@@ -255,3 +258,9 @@ class DefaultProject(Project):
             return shell(f'{app.config.docker_cmd} run --rm -i {volumes} {app.image} build{options}', chdir=home)
         else:
             super().docker_build(rebuild=rebuild)
+
+    def sync(self):
+        index = Index(self.home / 'index.csv')
+        index.scan(self.home / 'msg', ignores=set(self.ignores) if self.ignores else None)
+        index.save()
+

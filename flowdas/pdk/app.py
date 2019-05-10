@@ -14,6 +14,8 @@ flowdas.app.define('git_cmd', flowdas.meta.String(default='git'))
 DEFAULT_PROJECT_DATA = """kind: python-docs-ko
 name: python-docs-ko
 msg_repo: {}
+ignores:
+- whatsnew/changelog.po
 """
 
 
@@ -71,3 +73,7 @@ class App(flowdas.app.App):
                     f.write(odata)
             else:
                 print('already formatted')
+
+        def sync(self, *, project='python-docs-ko'):
+            """make index up-to-date"""
+            App().open_project(project).sync()
