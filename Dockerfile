@@ -21,6 +21,12 @@ RUN ./bin/pip install .[docker]
 RUN rm -rf setup.py README.rst VERSION flowdas
 RUN mv docker.config.json config.json
 
+# test
+RUN bin/pdk init https://github.com/python/python-docs-ko.git
+RUN bin/pdk build
+RUN cp python-docs-ko/bld/NEWS python-docs-ko/src/Misc/NEWS
+RUN rm -rf python-docs-ko/msg python-docs-ko/bld python-docs-ko/tmp
+
 # finalize
 FROM python:3.7.3-slim
 COPY --from=build /python-docs-ko /python-docs-ko/

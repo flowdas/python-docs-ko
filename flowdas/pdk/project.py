@@ -240,10 +240,11 @@ class DefaultProject(Project):
             msg_dir = app.home / self.name / 'msg'
             if not (msg_dir / '.git').exists():
                 git_clone(self.msg_repo, msg_dir, '3.7')
-        try:
-            shell(f'{app.config.docker_cmd} image inspect {app.image}', capture=True)
-        except:
-            shell(f'{app.config.docker_cmd} pull {app.image}')
+        if not app.config.docker:
+            try:
+                shell(f'{app.config.docker_cmd} image inspect {app.image}', capture=True)
+            except:
+                shell(f'{app.config.docker_cmd} pull {app.image}')
 
     def docker_build(self, *, rebuild=False):
         if self.name == 'python-docs-ko':
