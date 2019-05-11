@@ -197,6 +197,7 @@ class DefaultProject(Project):
     kind = 'python-docs-ko'
     msg_repo = meta.String()
     ignores = meta.String[:](required=True)
+    deprecated = meta.String[:](required=True)
 
     def get_doc_dir(self):
         return 'Doc'

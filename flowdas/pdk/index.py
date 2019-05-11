@@ -23,6 +23,9 @@ class Index:
         else:
             self._updated = True
 
+    def rows(self):
+        return self._index.values()
+
     def save(self):
         if self._updated:
             with self._file.open('w', newline='') as f:
