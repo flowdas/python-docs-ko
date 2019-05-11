@@ -1,4 +1,5 @@
 import io
+import pathlib
 
 import flowdas.app
 import flowdas.meta
@@ -29,6 +30,13 @@ class App(flowdas.app.App):
         return f'flowdas/python-docs-ko:{self.version}'
 
     def open_project(self, name):
+        if name is None:
+            p = pathlib.Path().absolute()
+            try:
+                relpath = p.relative_to(self.home)
+                name = relpath.parts[0]
+            except (ValueError, IndexError):
+                name = 'python-docs-ko'
         with open(self.home / name / 'project.yaml') as f:
             data = yaml.load(f, Loader=yaml.SafeLoader)
         return Project().load(data)
@@ -45,7 +53,7 @@ class App(flowdas.app.App):
                     f.write(DEFAULT_PROJECT_DATA.format(repo))
             app.open_project(project).setup()
 
-        def build(self, *, rebuild=False, project='python-docs-ko'):
+        def build(self, *, rebuild=False, project=None):
             """build html"""
             App().open_project(project).build(rebuild=rebuild)
 
@@ -74,6 +82,6 @@ class App(flowdas.app.App):
             else:
                 print('already formatted')
 
-        def sync(self, *, project='python-docs-ko'):
+        def sync(self, *, project=None):
             """make index up-to-date"""
             App().open_project(project).sync()
