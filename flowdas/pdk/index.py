@@ -75,3 +75,5 @@ class Index:
 
         coverage = int(T * 10000 / S) / 10000
         print(f'{coverage:.2%} ({T}/{S})')
+
+        return f'{coverage:.2%}'

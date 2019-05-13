@@ -263,6 +263,6 @@ class DefaultProject(Project):
 
     def sync(self):
         index = Index(self.home / 'index.csv')
-        index.scan(self.home / 'msg', ignores=set(self.ignores) if self.ignores else None)
+        coverage = index.scan(self.home / 'msg', ignores=set(self.ignores) if self.ignores else None)
         index.save()
-
+        return coverage
