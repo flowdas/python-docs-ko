@@ -8,7 +8,6 @@ from flowdas.app import App
 
 from flowdas import meta
 from .aofile import AOFile
-from .index import Index
 
 
 def shell(cmd, capture=False, chdir=None):
@@ -260,9 +259,3 @@ class DefaultProject(Project):
             return shell(f'{app.config.docker_cmd} run --rm -i {volumes} {app.image} build{options}', chdir=home)
         else:
             super().docker_build(rebuild=rebuild)
-
-    def sync(self):
-        index = Index(self.home / 'index.csv')
-        coverage = index.scan(self.home / 'msg', ignores=set(self.ignores) if self.ignores else None)
-        index.save()
-        return coverage

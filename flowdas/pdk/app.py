@@ -98,10 +98,6 @@ class App(flowdas.app.App):
             if empty_count:
                 print(f'{empty_count} untranslated messages found')
 
-        def sync(self, *, project=None):
-            """make index up-to-date"""
-            App().open_project(project).sync()
-
         def spell(self, pofile):
             """spell check"""
             check_spell(pofile)
