@@ -11,10 +11,10 @@ install_requires = [
     'lxml',
 ]
 
-tests_require = [
+tests_requires = [
 ]
 
-docker_require = sum([
+all_requires = sum([
     install_requires,
 ], [
     'blurb',
@@ -24,9 +24,9 @@ docker_require = sum([
     'sphinx',
 ])
 
-dev_require = sum([
+dev_requires = sum([
     install_requires,
-    tests_require,
+    tests_requires,
 ], [
     'twine',
 ])
@@ -50,10 +50,10 @@ setup(
     },
     install_requires=install_requires,
     setup_requires=setup_requires,
-    tests_require=tests_require,
+    tests_require=tests_requires,
     extras_require={
-        'dev': dev_require,
-        'docker': docker_require,
+        'dev': dev_requires,
+        'all': all_requires,
     },
     scripts=[],
     entry_points={
