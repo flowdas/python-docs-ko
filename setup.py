@@ -1,4 +1,4 @@
-# Copyright 2018 Nitmus Co., Ltd., 오동권(Dong-gweon Oh) <paul.oh@nitmus.com>, All rights reserved.
+# Copyright 2019 Flowdas Inc., 오동권(Dong-gweon Oh) <prospero@flowdas.com>, All rights reserved.
 from setuptools import setup
 
 setup_requires = [
@@ -8,6 +8,7 @@ install_requires = [
     'flowdas',
     'Babel',
     'pyyaml',
+    'lxml',
 ]
 
 tests_require = [

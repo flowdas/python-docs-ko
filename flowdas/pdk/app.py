@@ -7,10 +7,13 @@ import yaml
 from babel.messages.pofile import read_po, write_po
 
 from .project import Project, shell
+from .spell import check_spell
 
 flowdas.app.define('docker', flowdas.meta.Boolean(default=False))
 flowdas.app.define('docker_cmd', flowdas.meta.String(default='docker'))
 flowdas.app.define('git_cmd', flowdas.meta.String(default='git'))
+# flowdas.app.define('spell_uri', flowdas.meta.String(default='http://speller.cs.pusan.ac.kr/PnuWebSpeller/lib/check.asp'))
+flowdas.app.define('spell_uri', flowdas.meta.String(default='http://164.125.7.61/speller/lib/check.asp'))
 
 DEFAULT_PROJECT_DATA = """kind: python-docs-ko
 name: python-docs-ko
@@ -73,6 +76,7 @@ class App(flowdas.app.App):
                 idata = f.read()
             f = io.StringIO(idata)
             catalog = read_po(f, abort_invalid=True)
+            catalog.language_team = 'Korean (https://python.flowdas.com)'
             f = io.BytesIO()
             write_po(f, catalog)
             odata = f.getvalue()
@@ -81,7 +85,23 @@ class App(flowdas.app.App):
                     f.write(odata)
             else:
                 print('already formatted')
+            fuzzy_count = empty_count = 0
+            for msg in catalog:
+                if not msg.id:
+                    continue
+                if msg.fuzzy:
+                    fuzzy_count += 1
+                elif not msg.string:
+                    empty_count += 1
+            if fuzzy_count:
+                print(f'{fuzzy_count} fuzzy messages found')
+            if empty_count:
+                print(f'{empty_count} untranslated messages found')
 
         def sync(self, *, project=None):
             """make index up-to-date"""
             App().open_project(project).sync()
+
+        def spell(self, pofile):
+            """spell check"""
+            check_spell(pofile)
