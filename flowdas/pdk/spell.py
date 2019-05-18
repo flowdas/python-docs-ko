@@ -33,14 +33,29 @@ class Cache:
         return output
 
 
+PRETRANSFORM = (
+    ('파이썬', '파이선'),
+)
+
+
 def sanitize(text):
-    text = text.replace('`\\', '`').replace('*\\', '*')
+    def strip_link(n):
+        def repl(m):
+            s = m.group(n)
+            m = re.match(r'([^<]+) <[^>]+>', s)
+            return m.group(1) if m else s
+
+        return repl
+
+    text = text.replace('`\\', '`').replace('*\\', '*').replace('`_\\', '`').replace('`__\\', '`')
     text = re.sub(r':(\w+):(\w+):`([^`]+)`', lambda m: m.group(3), text)  # :...:...:`...`
     text = re.sub(r':(\w+):`([^`]+)`', lambda m: m.group(2), text)  # :...:`...`
     text = re.sub(r'``([^`]+)``', lambda m: m.group(1), text)  # ``...``
-    text = re.sub(r'`([^`]+)`([_]*)', lambda m: m.group(1), text)  # `...`_, `...`__
+    text = re.sub(r'`([^`]+)`([_]*)', strip_link(1), text)  # `...`_, `...`__
     text = re.sub(r'[*][*]([^*]+)[*][*]', lambda m: m.group(1), text)  # **...**
     text = re.sub(r'[*]([^*]+)[*]', lambda m: m.group(1), text)  # *...*
+    for old, new in PRETRANSFORM:
+        text = text.replace(old, new)
     return text
 
 
@@ -66,6 +81,10 @@ def extract(html):
                 if value and value != '없음':
                     entry[key] = value
         input, output, help = entry['input'], entry.get('output'), entry.get('help')
+        for old, new in reversed(PRETRANSFORM):
+            input = input.replace(new, old)
+            if output:
+                output = output.replace(new, old)
         if filter_suggestion(input, output, help):
             yield (input, output, help)
 
@@ -73,16 +92,22 @@ def extract(html):
 SIMPLE_EXCLUDES = {
     ('파이썬', '파이선'),
     ('컨텍스트', '문맥'),
+    ('메서드', '메서든'),
     ('메서드를', '멘 거들을'),
     ('메서드가', '메서 들어가'),
     ('딕셔너리', '사전'),
     ('딕셔너리를', '사전을'),
+    ('로케일', '야외촬영일'),
 }
 
 DIFF_EXCLUDES = {
     ('.', '·'),
     ('딕셔너리', '사전'),
 }
+
+
+def isasciialpha(s):
+    return s.isascii() and s.isalpha()
 
 
 def filter_suggestion(input, output, help):
@@ -98,7 +123,11 @@ def filter_suggestion(input, output, help):
                 diff = (input[i1:i2], output[j1:j2])
                 if diff in DIFF_EXCLUDES:
                     continue
-                if diff == ('', ' ') and i1 > 0 and input[i1 - 1:i1 + 1].isalpha():
+                elif diff == ('', ' '):
+                    if i1 > 0 and (
+                            isasciialpha(input[i1 - 1:i1 + 1]) or (input[i1 - 1] == '.' and isasciialpha(input[i1]))):
+                        continue
+                elif isasciialpha(''.join(diff)):
                     continue
                 diffs.append(diff)
         if not diffs:
