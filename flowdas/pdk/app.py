@@ -1,5 +1,6 @@
 import io
 import pathlib
+import string
 
 import flowdas.app
 import flowdas.meta
@@ -21,6 +22,12 @@ msg_repo: {}
 ignores:
 - whatsnew/changelog.po
 """
+
+
+def _remove_nonprintables(text):
+    nps = ''.join(sorted(set(chr(i) for i in range(128)) - set(string.printable)))
+    table = str.maketrans(nps, nps[0] * len(nps))
+    return text.translate(table).replace(nps[0], '')
 
 
 class App(flowdas.app.App):
@@ -76,7 +83,14 @@ class App(flowdas.app.App):
                 idata = f.read()
             f = io.StringIO(idata)
             catalog = read_po(f, abort_invalid=True)
+
             catalog.language_team = 'Korean (https://python.flowdas.com)'
+
+            for msg in catalog:
+                if not msg.id or not msg.string or msg.fuzzy:
+                    continue
+                msg.string = _remove_nonprintables(msg.string)
+
             f = io.BytesIO()
             write_po(f, catalog)
             odata = f.getvalue()
