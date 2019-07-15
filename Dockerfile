@@ -1,4 +1,4 @@
-FROM python:3.7.3 as build
+FROM python:3.7.4 as build
 
 # Home
 WORKDIR /python-docs-ko
@@ -10,7 +10,7 @@ RUN python -m venv .
 RUN mkdir python-docs-ko
 
 # git clone cpython
-RUN git clone -b 3.7 --single-branch https://github.com/flowdas/cpython python-docs-ko/src
+RUN git clone -b v3.7.4 --single-branch https://github.com/python/cpython python-docs-ko/src
 RUN rm -rf python-docs-ko/src/.git
 RUN mkdir -p python-docs-ko/src/locale/ko/LC_MESSAGES
 
@@ -28,7 +28,7 @@ RUN cp python-docs-ko/bld/NEWS python-docs-ko/src/Misc/NEWS
 RUN rm -rf python-docs-ko/msg python-docs-ko/bld python-docs-ko/tmp
 
 # finalize
-FROM python:3.7.3-slim
+FROM python:3.7.4-slim
 RUN set -ex \
     && apt-get update \
     && apt-get install make \
