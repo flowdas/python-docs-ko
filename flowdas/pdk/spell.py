@@ -1,4 +1,5 @@
 import difflib
+import json
 import pathlib
 import re
 import sqlite3
@@ -9,7 +10,6 @@ import warnings
 
 from babel.messages.pofile import read_po
 from flowdas.app import App
-from lxml import etree
 
 REQUEST_INTERVAL = 5  # seconds between http request
 
@@ -60,33 +60,16 @@ def sanitize(text):
 
 
 def extract(html):
-    html = etree.HTML(html)
-    tables = html.xpath('//table[@class="tableErrCorrect"]')
-    for table in tables:
-        entry = {}
-        for tr in table.xpath("tr"):
-            tds = tr.xpath("td")
-            key = tds[0].text.strip()
-            key = {
-                '입력 내용': 'input',
-                '대치어': 'output',
-                '도움말': 'help',
-            }.get(key, key)
-            if key in {'input', 'output'}:
-                value = (tds[1].text or '').strip()
-                if value and (key != 'output' or value != '대치어 없음'):
-                    entry[key] = value
-            else:
-                value = " ".join([x.strip() for x in tds[1].itertext()])
-                if value and value != '없음':
-                    entry[key] = value
-        input, output, help = entry['input'], entry.get('output'), entry.get('help')
-        for old, new in reversed(PRETRANSFORM):
-            input = input.replace(new, old)
-            if output:
-                output = output.replace(new, old)
-        if filter_suggestion(input, output, help):
-            yield (input, output, help)
+    m = re.search(r'\n\tdata = (.+);\n\tpageIdx = 0;\n', html)
+    if m:
+        for data in json.loads(m.group(1))[0]['errInfo']:
+            input, output, help = data['orgStr'], data['candWord'], data['help']
+            for old, new in reversed(PRETRANSFORM):
+                input = input.replace(new, old)
+                if output:
+                    output = output.replace(new, old)
+            if filter_suggestion(input, output, help):
+                yield (input, output, help)
 
 
 SIMPLE_EXCLUDES = {
@@ -95,14 +78,33 @@ SIMPLE_EXCLUDES = {
     ('메서드', '메서든'),
     ('메서드를', '멘 거들을'),
     ('메서드가', '메서 들어가'),
+    ('메서드로', '메서 드론'),
+    ('메서드에', '메 세 번째에'),
+    ('메서드는', '메서 드는'),
+    ('메서드이지만', '메서 드리지만'),
+    ('메서드도', '메서더라도'),
+    ('메서드의', '메 세 번째의'),
+    ('메서드와', '메서 들어와'),
+    ('메서드인', '메서 드린'),
     ('딕셔너리', '사전'),
     ('딕셔너리를', '사전을'),
     ('로케일', '야외촬영일'),
+    ('윈도우', '윈도'),
+    ('윈도우의', '윈도의'),
+    ('레퍼런스', '사례'),
+    ('매뉴얼', '설명서'),
+    ('임포트', '도입'),
+    ('콜백', '답전화'),
+    ('스트림', '경향'),
+    ('어트리뷰트', '속성'),
+    ('표현식', '표 현실'),
 }
 
 DIFF_EXCLUDES = {
     ('.', '·'),
     ('딕셔너리', '사전'),
+    ('트레이스', '기록 '),
+    ('스트림', '경향'),
 }
 
 
@@ -155,7 +157,7 @@ def check_spell(pofile):
 
         data = urllib.parse.urlencode({'text1': text})
         data = data.encode('ascii')
-        with urllib.request.urlopen(uri, data, timeout=5) as f:
+        with urllib.request.urlopen(uri, data, timeout=10) as f:
             return f.read().decode('utf-8')
 
     with open(pofile) as f:
@@ -177,5 +179,5 @@ def check_spell(pofile):
                         f.write(f'{input} -> {output}: {help or ""}\n')
                     f.write('\n')
                     f.flush()
-            except urllib.request.URLError:
+            except (urllib.request.URLError, KeyError):
                 warnings.warn('fail: ' + text)

@@ -13,8 +13,7 @@ from .spell import check_spell
 flowdas.app.define('docker', flowdas.meta.Boolean(default=False))
 flowdas.app.define('docker_cmd', flowdas.meta.String(default='docker'))
 flowdas.app.define('git_cmd', flowdas.meta.String(default='git'))
-# flowdas.app.define('spell_uri', flowdas.meta.String(default='http://speller.cs.pusan.ac.kr/PnuWebSpeller/lib/check.asp'))
-flowdas.app.define('spell_uri', flowdas.meta.String(default='http://164.125.7.61/speller/lib/check.asp'))
+flowdas.app.define('spell_uri', flowdas.meta.String(default='http://speller.cs.pusan.ac.kr/results'))
 
 DEFAULT_PROJECT_DATA = """kind: python-docs-ko
 name: python-docs-ko
