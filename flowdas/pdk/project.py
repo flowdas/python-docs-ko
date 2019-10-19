@@ -239,7 +239,7 @@ class DefaultProject(Project):
         if self.msg_repo:
             msg_dir = app.home / self.name / 'msg'
             if not (msg_dir / '.git').exists():
-                git_clone(self.msg_repo, msg_dir, '3.7')
+                git_clone(self.msg_repo, msg_dir, '3.8')
         if not app.config.docker:
             try:
                 shell(f'{app.config.docker_cmd} image inspect {app.image}', capture=True)

@@ -26,7 +26,8 @@ ignores:
 def _remove_nonprintables(text):
     nps = ''.join(sorted(set(chr(i) for i in range(128)) - set(string.printable)))
     table = str.maketrans(nps, nps[0] * len(nps))
-    return text.translate(table).replace(nps[0], '')
+    text = text.translate(table).replace(nps[0], '')
+    return text.lstrip()
 
 
 class App(flowdas.app.App):

@@ -157,7 +157,7 @@ def check_spell(pofile):
 
         data = urllib.parse.urlencode({'text1': text})
         data = data.encode('ascii')
-        with urllib.request.urlopen(uri, data, timeout=10) as f:
+        with urllib.request.urlopen(uri, data, timeout=30) as f:
             return f.read().decode('utf-8')
 
     with open(pofile) as f:
@@ -179,5 +179,5 @@ def check_spell(pofile):
                         f.write(f'{input} -> {output}: {help or ""}\n')
                     f.write('\n')
                     f.flush()
-            except (urllib.request.URLError, KeyError):
+            except (urllib.request.URLError, KeyError, UnicodeDecodeError):
                 warnings.warn('fail: ' + text)
