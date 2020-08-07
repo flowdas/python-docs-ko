@@ -60,7 +60,7 @@ def sanitize(text):
 
 
 def extract(html):
-    m = re.search(r'\n\tdata = (.+);\n\tpageIdx = 0;\n', html)
+    m = re.search(r'\s+data = (.+);\s*pageIdx = 0;', html)
     if m:
         for data in json.loads(m.group(1))[0]['errInfo']:
             input, output, help = data['orgStr'], data['candWord'], data['help']
@@ -157,7 +157,7 @@ def check_spell(pofile):
 
         data = urllib.parse.urlencode({'text1': text})
         data = data.encode('ascii')
-        with urllib.request.urlopen(uri, data, timeout=30) as f:
+        with urllib.request.urlopen(uri, data, timeout=60) as f:
             return f.read().decode('utf-8')
 
     with open(pofile) as f:
