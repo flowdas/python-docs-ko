@@ -63,7 +63,7 @@ class Project(meta.Entity):
     def get_htm_dir(self):
         return None
 
-    def get_build_cmd(self, *, rebuild=False):
+    def get_build_cmd(self, *, rebuild=False, suspicious=False):
         raise NotImplementedError
 
     def get_build_dir(self):
@@ -100,7 +100,7 @@ class Project(meta.Entity):
                         else:
                             shutil.rmtree(path)
 
-    def build(self, *, rebuild=False):
+    def build(self, *, rebuild=False, suspicious=False):
         app = App()
         if app.config.docker:
             tmp_dir = self.home / 'tmp'
@@ -113,7 +113,7 @@ class Project(meta.Entity):
             self.copy_doc()
             self.link_msg()
             self.link_bld()
-            shell(self.get_build_cmd(rebuild=rebuild), chdir=tmp_dir / self.get_build_dir())
+            shell(self.get_build_cmd(rebuild=rebuild, suspicious=suspicious), chdir=tmp_dir / self.get_build_dir())
             if publish:
                 self._prune_dir(pub_dir)
                 self.copy_pub()
@@ -225,11 +225,16 @@ class DefaultProject(Project):
     def get_htm_dir(self):
         return 'html'
 
-    def get_build_cmd(self, *, rebuild=False):
+    def get_build_cmd(self, *, rebuild=False, suspicious=False):
+        builder = '-b suspicious --keep-going ' if suspicious else ''
+        extra_opts = ''
+        if suspicious:
+            extra_opts += '--keep-going '
+        target = 'suspicious' if suspicious else 'autobuild-dev-html' if rebuild else 'html'
         if rebuild:
-            return "make VENVDIR=../../.. SPHINXOPTS='-D locale_dirs=../locale -D language=ko -D gettext_compact=0' autobuild-dev-html"
+            return f"make VENVDIR=../../.. SPHINXOPTS='{extra_opts}-D locale_dirs=../locale -D language=ko -D gettext_compact=0' {target}"
         else:
-            return "make VENVDIR=../../.. SPHINXOPTS='-D locale_dirs=../locale -D language=ko -D gettext_compact=0 -A daily=1 -A switchers=1' html"
+            return f"make VENVDIR=../../.. SPHINXOPTS='{extra_opts}-D locale_dirs=../locale -D language=ko -D gettext_compact=0 -A daily=1 -A switchers=1' {target}"
 
     def get_build_dir(self):
         return 'Doc'

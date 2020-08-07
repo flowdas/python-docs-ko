@@ -63,9 +63,9 @@ class App(flowdas.app.App):
                     f.write(DEFAULT_PROJECT_DATA.format(repo))
             app.open_project(project).setup()
 
-        def build(self, *, rebuild=False, project=None):
+        def build(self, *, rebuild=False, suspicious=False, project=None):
             """build html"""
-            App().open_project(project).build(rebuild=rebuild)
+            App().open_project(project).build(rebuild=rebuild, suspicious=suspicious)
 
         def dockerbuild(self):
             """build docker image (dev only)"""
@@ -77,7 +77,7 @@ class App(flowdas.app.App):
             app = App()
             return shell(f'{app.config.docker_cmd} push {app.image}', chdir=app.home)
 
-        def format(self, pofile):
+        def format(self, pofile, *, unwrap=False):
             """format po file"""
             with open(pofile) as f:
                 idata = f.read()
@@ -92,7 +92,10 @@ class App(flowdas.app.App):
                 msg.string = _remove_nonprintables(msg.string)
 
             f = io.BytesIO()
-            write_po(f, catalog)
+            if unwrap:
+                write_po(f, catalog, width=None)
+            else:
+                write_po(f, catalog)
             odata = f.getvalue()
             if idata.encode() != odata:
                 with open(pofile, 'wb') as f:
