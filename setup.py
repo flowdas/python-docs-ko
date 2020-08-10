@@ -21,7 +21,7 @@ all_requires = sum([
     'python-docs-theme',
     'requests',
     'sentry-sdk',
-    'sphinx',
+    'sphinx==2.3.1',
 ])
 
 dev_requires = sum([

@@ -10,7 +10,7 @@ RUN python -m venv .
 RUN mkdir python-docs-ko
 
 # git clone cpython
-RUN git clone -b v3.8.0 --single-branch https://github.com/python/cpython python-docs-ko/src
+RUN git clone -b v3.8.5 --single-branch https://github.com/python/cpython python-docs-ko/src
 RUN rm -rf python-docs-ko/src/.git
 RUN mkdir -p python-docs-ko/src/locale/ko/LC_MESSAGES
 
