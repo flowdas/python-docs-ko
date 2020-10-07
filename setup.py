@@ -22,6 +22,7 @@ all_requires = sum([
     'requests',
     'sentry-sdk',
     'sphinx==2.3.1',
+    'asdl',
 ])
 
 dev_requires = sum([

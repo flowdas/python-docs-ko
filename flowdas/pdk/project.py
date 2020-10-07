@@ -214,6 +214,7 @@ class DefaultProject(Project):
             'Lib/test/exception_hierarchy.txt',
             'Tools/scripts/serve.py',
             'Grammar/Grammar',
+            'Grammar/python.gram',
         ]
 
     def get_msg_dir(self):
@@ -244,7 +245,7 @@ class DefaultProject(Project):
         if self.msg_repo:
             msg_dir = app.home / self.name / 'msg'
             if not (msg_dir / '.git').exists():
-                git_clone(self.msg_repo, msg_dir, '3.8')
+                git_clone(self.msg_repo, msg_dir, '3.9')
         if not app.config.docker:
             try:
                 shell(f'{app.config.docker_cmd} image inspect {app.image}', capture=True)
